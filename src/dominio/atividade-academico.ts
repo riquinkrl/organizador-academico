@@ -164,7 +164,27 @@ export class AtividadePratica extends ItemAcademico implements AcoesAtividadePra
         }
     }
 
-    getConcluida():boolean{
+    obterDataConclusao(): Date | undefined {
+        return this.getDataConclusao();
+    }
+
+    estaConcluido(): boolean {
+        return this.concluida;
+        }
+
+    exigeEntrega(): boolean {
+        return true;
+        }
+
+    obterPrazo(): Date | undefined {
+        return new Date(this.dataLimite.getTime());
+        }
+
+    obterOrigem(): Origem | undefined {
+        return this.origem;
+        }
+
+    getConcluida(): boolean{
         return this.concluida;
     }
 

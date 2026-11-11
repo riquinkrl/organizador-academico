@@ -1,4 +1,5 @@
 import  { AcoesItemAcademico } from "../contratos/acoes-item";
+import type { Origem } from "../contratos/acoes-atividade";
 
 export abstract class ItemAcademico implements AcoesItemAcademico {
     private static contador: number = 0;
@@ -51,7 +52,40 @@ export abstract class ItemAcademico implements AcoesItemAcademico {
         return `${this.obterCategoria()}: ${this.titulo}`;
     }
 
+    verificarSeAtrasada(agora?: Date): boolean {
+        return false;
+    }
+    
+    estaConcluido(): boolean {
+        return false;
+    }
+
+    estaFixado(): boolean {
+        return false;
+    }
+
+    exigeEntrega(): boolean {
+        return false;
+    }
+
+    obterPrazo(): Date | undefined {
+        return undefined;
+    }
+
+    obterOrigem(): Origem | undefined {
+        return undefined;
+    }
+
+    obterDataConclusao(): Date | undefined {
+        return undefined;
+    }
+
+    marcarComoConcluida(agora?: Date): void {
+        throw new Error("Este tipo de item não pode ser concluído. ");
+    }
+
     abstract obterCategoria(): string;
     abstract estaPendente(): boolean;
     abstract obterExibicaoFormatada(): string;
+    
 }

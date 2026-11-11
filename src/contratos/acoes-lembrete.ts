@@ -1,3 +1,3 @@
-export interface AcoesLembrete{
+export interface AcoesLembrete {
     alternarFixacao(): void;
 }

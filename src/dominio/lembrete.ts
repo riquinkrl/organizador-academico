@@ -8,8 +8,7 @@ export class Lembrete extends ItemAcademico implements AcoesLembrete {
     constructor(titulo: string, descricao: string, workspaceId: string, etiqueta: string, dataAviso?: Date){
     
         super(titulo, descricao, workspaceId);
-        this.etiqueta = Lembrete.validarEtiqueta(etiqueta)
-        this.fixado = fixado;
+        this.etiqueta = Lembrete.validarEtiqueta(etiqueta);
 
         if(dataAviso){
             if(!Number.isNaN(dataAviso.getTime())){
@@ -21,16 +20,18 @@ export class Lembrete extends ItemAcademico implements AcoesLembrete {
             this.dataAviso = undefined;
         }
 
-        private static validarEtiqueta(etiqueta: string): string {
+        }
+    
+
+    private static validarEtiqueta(etiqueta: string): string {
             const limpa: string = etiqueta.trim();
 
             if(limpa === ""){
                 throw new Error("A etiqueta não pode ser vazia. ");
             }
             return limpa;
-        }
     }
-    
+
     obterCategoria(): string {
         return "Lembrete";
     }
@@ -52,14 +53,14 @@ export class Lembrete extends ItemAcademico implements AcoesLembrete {
     }
 
     obterExibicaoFormatada(): string {
-        let texto: string = `${this.getTitulo()} - ${this.etiqueta}`;
+        let texto: string = `${this.getTitulo()}\n${this.etiqueta}`;
 
         if(this.dataAviso){
             texto += `(aviso: ${this.dataAviso.toLocaleDateString("pt-BR")})`;
         }
 
         if(this.fixado){
-            texto += " [fixado] ";
+            texto += "[fixado]";
         }
         return texto;
     }
@@ -72,7 +73,7 @@ export class Lembrete extends ItemAcademico implements AcoesLembrete {
         this.fixado = !this.fixado;
     }
 
-    getDataAviso(): Date | undefined{
+    getDataAviso(): Date | undefined {
         if(this.dataAviso){
             return new Date(this.dataAviso.getTime());
         } else {
@@ -81,11 +82,11 @@ export class Lembrete extends ItemAcademico implements AcoesLembrete {
 
     }
 
-    getFixado(): boolean{
+    getFixado(): boolean {
         return this.fixado;
     }
 
-    getEtiqueta(): string{
+    getEtiqueta(): string {
         return this.etiqueta;
     }
 }

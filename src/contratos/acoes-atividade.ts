@@ -1,4 +1,4 @@
-export type Origem = "PROFESSOR" | "AUTOESTUDO";
+export type Origem = "PROFESSOR" | "AUTOESTUDO"
 
 export type SubtarefaChecklist = {
     descricao: string;

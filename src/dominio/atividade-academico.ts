@@ -1,8 +1,6 @@
 import { ItemAcademico } from "./item-academico";
 import type { AcoesAtividadePratica, Origem, SubtarefaChecklist } from "../contratos/acoes-atividade";
 
-const msPorDia: number = 24 * 60 * 60 * 1000;
-
 export class AtividadePratica extends ItemAcademico implements AcoesAtividadePratica {
     private readonly dataLimite: Date;
     private concluida: boolean = false;
@@ -18,15 +16,27 @@ export class AtividadePratica extends ItemAcademico implements AcoesAtividadePra
             this.dataLimite = new Date(dataLimite.getTime());
             this.origem = origem;
 
-            if(linkEntrega){
+            if(linkEntrega && linkEntrega.trim() !== ""){
                 this.linkEntrega = linkEntrega.trim();
             } else{
                 this.linkEntrega = undefined;
-            } 
+            }
         } else{
-            throw new Error("Data limite inválida.")
+            throw new Error("Data limite inválida.");
         }
     }
+
+    private contarSubtarefas(): number {
+        let feitas: number = 0;
+
+        for(const sub of this.checklist){
+            if(sub.feita){
+                feitas++;
+            }
+        }
+        return feitas;
+    }
+
     obterCategoria(): string {
         return "Atividade Prática";
     }
@@ -43,10 +53,39 @@ export class AtividadePratica extends ItemAcademico implements AcoesAtividadePra
         } else{
             situacao = "Pendente";
         }
-        return `${this.getTitulo()} — ${situacao} (prazo: ${this.dataLimite.toLocaleDateString("pt-BR")})`;
+        return `${this.getTitulo()} - ${situacao} (prazo: ${this.dataLimite.toLocaleDateString("pt-BR")})`;
     }
 
-    marcarComoConcluida(agora?: Date): void {
+    override estaConcluido(): boolean {
+        return this.concluida;
+    }
+
+    override exigeEntrega(): boolean {
+        return true;
+    }
+
+    override obterPrazo(): Date | undefined {
+        return new Date(this.dataLimite.getTime());
+    }
+
+    override obterOrigem(): Origem | undefined {
+        return this.origem;
+    }
+
+    override obterDataConclusao(): Date | undefined {
+        if(!this.dataConclusao){
+            return undefined;
+        }
+        return new Date(this.dataConclusao.getTime());
+    }
+
+    override verificarSeAtrasada(agora?: Date): boolean {
+        const dataReferencia: Date = ItemAcademico.obterDataReferencia(agora);
+        
+        return this.estaPendente() && dataReferencia.getTime() > this.dataLimite.getTime();
+    }
+
+    override marcarComoConcluida(agora?: Date): void {
         let dataReferencia: Date;
 
         if(agora){
@@ -64,152 +103,52 @@ export class AtividadePratica extends ItemAcademico implements AcoesAtividadePra
     }
 
     reabrirAtividade(): void {
-        if(this.concluida){
-            this.concluida = false;
-            this.dataConclusao = undefined;
-        } else{
+        if(!this.concluida){
             throw new Error("A atividade já está pendente.");
         }
-    }
-
-    verificarSeAtrasada(agora?: Date): boolean {
-        let dataReferencia: Date;
-
-        if(agora){
-            dataReferencia = agora;
-        } else{
-            dataReferencia = new Date();
-        }
-
-        if(this.estaPendente() && dataReferencia.getTime() > this.dataLimite.getTime()){
-            return true;
-        } else{
-            return false;
-        }
-        
+        this.concluida = false;
+        this.dataConclusao = undefined;
     }
 
     calcularDiasRestantes(agora?: Date): number {
-         let dataReferencia: Date;
-
-        if(agora){
-            dataReferencia = agora;
-        } else{
-            dataReferencia = new Date();
-        }
-
-        const diferenca: number = this.dataLimite.getTime() - dataReferencia.getTime();
-        const resto: number = diferenca % msPorDia;
-        let dias: number = (diferenca - resto) / msPorDia;
-
-        if(resto > 0){
-            dias++;
-        }
-
-        return dias;
+       return ItemAcademico.calcularDiasAte(this.dataLimite, ItemAcademico.obterDataReferencia(agora));
     }
 
     atualizarLinkEntrega(novoLink: string): void {
-        const limpo = novoLink.trim();
-
-        if(limpo){
-            this.linkEntrega = limpo;
-        } else{
-            throw new Error("O link de entrega não pode ser vazio.");
-        }
+        this.linkEntrega = ItemAcademico.validarTextoObrigatorio(novoLink, "O link de entrega não pode ser vazio.");
     }
 
     adicionarSubtarefa(descricao: string): void {
-        const limpa: string = descricao.trim();
+        const limpa: string = ItemAcademico.validarTextoObrigatorio(descricao, "A subtarefa não pode ser vazia.");
 
-        if(limpa){
-            this.checklist.push({descricao: limpa, feita: false });
-        } else{
-            throw new Error("A subtarefa não pode ser vazia.");
-        }
+        this.checklist.push({descricao: limpa, feita: false });
     }
 
     alternarSubtarefa(indice: number): void {
         const sub: SubtarefaChecklist | undefined = this.checklist[indice];
 
-        if(sub){
-            sub.feita = !sub.feita;
-        } else{
-            throw new Error("Subtarefa inexistente.")
+        if(!sub){
+            throw new Error("Subtarefa inexistente.");
         }
+        sub.feita = !sub.feita;
     }
 
     removerSubtarefa(indice: number): void {
-        if(indice >= 0 && indice < this.checklist.length){
-            this.checklist.splice(indice, 1);
-        } else{
+        if(indice < 0 || indice >= this.checklist.length){
             throw new Error("Índice de subtarefa inválido.");
         }
+          this.checklist.splice(indice, 1);  
     }
 
     calcularProgressoChecklist(): number {
-        if(this.checklist.length > 0){
-            let concluidas: number = 0;
-
-            for(const sub of this.checklist){
-                if(sub.feita){
-                    concluidas++;
-                }
-            }
-
-            const porcentagem: number = (concluidas / this.checklist.length) * 100;
-            return Number(porcentagem.toFixed(0));
-        } else{
-            return 0;
-        }
-    }
-
-    obterDataConclusao(): Date | undefined {
-        return this.getDataConclusao();
-    }
-
-    estaConcluido(): boolean {
-        return this.concluida;
-        }
-
-    exigeEntrega(): boolean {
-        return true;
-        }
-
-    obterPrazo(): Date | undefined {
-        return new Date(this.dataLimite.getTime());
-        }
-
-    obterOrigem(): Origem | undefined {
-        return this.origem;
-        }
-
-    getConcluida(): boolean{
-        return this.concluida;
+        return ItemAcademico.calcularPorcentagem(this.contarSubtarefas(), this.checklist.length);
     }
 
     getChecklist(): readonly SubtarefaChecklist[] {
         return this.checklist.map((s) =>({descricao: s.descricao, feita: s.feita}));
     }
 
-    getOrigem(): Origem {
-        return this.origem;
-    }
-
-    getDataLimite(): Date {
-        return new Date(this.dataLimite.getTime());
-    }
-
-    getDataConclusao(): Date | undefined {
-        if(this.dataConclusao){
-            return new Date(this.dataConclusao.getTime());
-        } else{
-            return undefined;
-        }
-    }
-
     getLinkEntrega(): string | undefined {
         return this.linkEntrega;
     }
 }
-

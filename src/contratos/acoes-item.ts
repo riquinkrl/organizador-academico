@@ -1,8 +1,8 @@
-import { Origem } from "./acoes-atividade";
+import type { Origem } from "./acoes-atividade";
 
 export interface AcoesItemAcademico {
     obterCategoria(): string;
-    estaPendente(): boolean;
+    estaPendente(agora?: Date): boolean;
     obterExibicaoFormatada(): string;
     verificarSeAtrasada(agora?: Date): boolean;
     marcarComoConcluida(agora?: Date): void;

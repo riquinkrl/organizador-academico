@@ -1,4 +1,4 @@
-import type { AcoesAtividade } from "../contratos/acoes-atividade";
+import type { AcoesAtividadePratica } from "../contratos/acoes-atividade";
 import type { Origem, Passo, RegistroItemAcademico } from "../contratos/tipos";
 import { ItemAcademico } from "./item-academico";
 import { dataValida, textoObrigatorio } from "./validacao";

@@ -3,7 +3,7 @@ import type { Origem, Passo, RegistroItemAcademico } from "../contratos/tipos";
 import { ItemAcademico } from "./item-academico";
 import { dataValida, textoObrigatorio } from "./validacao";
 
-export class AtividadePratica extends ItemAcademico implements AcoesAtividade {
+export class AtividadePratica extends ItemAcademico implements AcoesAtividadePratica {
     private readonly dataLimite: Date;
     private dataConclusao?: Date;
     private readonly checklist: Array<Passo> = [];

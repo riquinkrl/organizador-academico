@@ -1,54 +1,52 @@
-import  { AcoesItemAcademico } from "../contratos/acoes-item";
-import type { Origem } from "../contratos/acoes-atividade";
+import type { AcoesItemAcademico } from "../contratos/acoes-item";
+import type { Origem, RegistroItemAcademico } from "../contratos/tipos";
+import {dataValida, textoObrigatorio } from "./validacao";
 
 export abstract class ItemAcademico implements AcoesItemAcademico {
-    private static contador: number = 0;
     protected readonly id: string;
-    protected  titulo: string;
-    protected  descricao: string;
+    protected readonly titulo: string;
+    protected readonly descricao: string;
     protected readonly dataCriacao: Date;
     protected readonly workspaceId: string;
 
-    constructor(titulo:string, descricao:string, workspaceId: string){
-        this.titulo = ItemAcademico.validarTitulo(titulo);
+    constructor(titulo: string, descricao: string, workspaceId: string, registro?: RegistroItemAcademico){
+        this.titulo = textoObrigatorio(titulo, "o título");
         this.descricao = descricao.trim();
-        this.workspaceId = workspaceId;
-        this.dataCriacao = new Date();
+        this.workspaceId = textoObrigatorio(workspaceId, "a disciplina").toUpperCase();
+        this.dataCriacao = registro ? dataValida(registro.dataCriacao) : new Date();
+        this.id = registro ? textoObrigatorio(registro.id, "o identificador") : this.gerarId();
+    }
 
+    private static contador: number = 0;
+    
+    private gerarId(): string {
         ItemAcademico.contador += 1;
-        this.id = `item-${Date.now()}-${ItemAcademico.contador}`;
-
+        const instante: number = this.dataCriacao.getTime();
+        const numeroAleatorio: number = Math.random();
+        return `item-${instante}-${ItemAcademico.contador}-${numeroAleatorio}`;
     }
 
-    protected static validarTitulo(titulo: string): string{
-        const limpo: string = titulo.trim();
-        if(limpo === ""){
-            throw new Error("O título não pode ser vazio.");
-        }
-        return limpo
-    }
-
-    getId():string {
+    getId(): string {
         return this.id;
     }
 
-    getTitulo():string {
+    getTitulo(): string {
         return this.titulo;
     }
 
-    getDescricao():string {
+    getDescricao(): string {
         return this.descricao;
     }
 
-    getDataCriacao():Date {
+    getDataCriacao(): Date {
         return new Date(this.dataCriacao);
     }
 
-    getWorkspaceId():string {
+    getWorkspaceId(): string {
         return this.workspaceId;
     }
 
-    obterResumo():string {
+    obterResumo(): string {
         return `${this.obterCategoria()}: ${this.titulo}`;
     }
 
@@ -81,11 +79,10 @@ export abstract class ItemAcademico implements AcoesItemAcademico {
     }
 
     marcarComoConcluida(agora?: Date): void {
-        throw new Error("Este tipo de item não pode ser concluído. ");
+        throw new Error("Este tipo de item não pode ser concluído.");
     }
 
     abstract obterCategoria(): string;
-    abstract estaPendente(): boolean;
+    abstract estaPendente(agora?: Date): boolean;
     abstract obterExibicaoFormatada(): string;
-    
 }

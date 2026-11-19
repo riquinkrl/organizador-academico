@@ -1,23 +1,34 @@
+
 import { ItemAcademico } from "./item-academico";
 import type { AcoesLembrete } from "../contratos/acoes-lembre";
+import { textoObrigatorio, dataValida } from "./validacao";
 
 export class Lembrete extends ItemAcademico implements AcoesLembrete {
     private readonly dataAviso?: Date;
     private fixado: boolean;
     private readonly etiqueta: string;
 
-    constructor(titulo: string, descricao: string, workspaceId: string, etiqueta: string, dataAviso?: Date, fixado: boolean = false){
+    constructor(
+        titulo: string,
+        descricao: string,
+        workspaceId: string,
+        etiqueta: string,
+        dataAviso?: Date,
+        fixado: boolean = false
+    ) {
         super(titulo, descricao, workspaceId);
-        this.etiqueta = ItemAcademico.validarTextoObrigatorio(etiqueta, "A etiqueta não pode ser vazia.");
+
+        this.etiqueta = textoObrigatorio(etiqueta, "a etiqueta");
         this.dataAviso = Lembrete.validarDataAviso(dataAviso);
         this.fixado = fixado;
     }
 
     private static validarDataAviso(data?: Date): Date | undefined {
-        if(data === undefined){
+        if (data === undefined) {
             return undefined;
         }
-        return ItemAcademico.validarEClonarData(data, "Data do aviso inválida.");
+
+        return dataValida(data);
     }
 
     obterCategoria(): string {
@@ -25,20 +36,23 @@ export class Lembrete extends ItemAcademico implements AcoesLembrete {
     }
 
     estaPendente(agora?: Date): boolean {
-        const dataReferencia: Date = ItemAcademico.obterDataReferencia(agora);
+        const dataReferencia: Date = agora ?? new Date();
 
-        return this.dataAviso !== undefined && this.dataAviso.getTime() > dataReferencia.getTime();
+        return this.dataAviso !== undefined &&
+            this.dataAviso.getTime() > dataReferencia.getTime();
     }
 
     obterExibicaoFormatada(): string {
         let texto: string = `${this.getTitulo()} - ${this.etiqueta}`;
 
-        if(this.dataAviso){
+        if (this.dataAviso) {
             texto += ` (aviso: ${this.dataAviso.toLocaleDateString("pt-BR")})`;
         }
-        if(this.fixado){
+
+        if (this.fixado) {
             texto += " [fixado]";
         }
+
         return texto;
     }
 
@@ -51,9 +65,10 @@ export class Lembrete extends ItemAcademico implements AcoesLembrete {
     }
 
     getDataAviso(): Date | undefined {
-        if(!this.dataAviso){
+        if (!this.dataAviso) {
             return undefined;
         }
+
         return new Date(this.dataAviso.getTime());
     }
 

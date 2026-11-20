@@ -1,4 +1,3 @@
-
 import { ItemAcademico } from "./item-academico";
 import type { AcoesLembrete } from "../contratos/acoes-lembre";
 import { textoObrigatorio, dataValida } from "./validacao";
